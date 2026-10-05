@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: shortly
+spec:
+  serviceName: "url-shortener-service"
+  replicas: 15
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      app: shortly
+  template:
+    metadata:
+      labels:
+        app: shortly
+    spec:
+      terminationGracePeriodSeconds: 30
+
+      containers:
+        - name: shortener
+          image: shortly:1.0.2
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            # 1. Downward API populates the pod name (e.g. url-shortener-4)
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            # 2. Hardcoded per region deployment (0 = Region A, 1 = Region B)
+            - name: REGION_ID
+              value: "0"
